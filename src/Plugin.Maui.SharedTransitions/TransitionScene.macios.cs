@@ -129,6 +129,11 @@ internal sealed partial class SnapshotLayer
 	}
 
 	public partial void BringToFront() => _view.Superview?.BringSubviewToFront(_view);
+
+	// Snapshots are already bitmaps that Core Animation composites on the GPU.
+	public partial void Cache()
+	{
+	}
 }
 
 internal sealed partial class ShapeLayer

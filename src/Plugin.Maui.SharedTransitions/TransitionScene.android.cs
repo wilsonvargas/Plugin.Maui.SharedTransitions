@@ -198,6 +198,9 @@ internal sealed partial class SnapshotLayer
 	}
 
 	public partial void BringToFront() => _view.BringToFront();
+
+	// Without it, a translucent full-page Picture is replayed into an offscreen buffer on every frame.
+	public partial void Cache() => _view.SetLayerType(LayerType.Hardware, null);
 }
 
 internal sealed partial class ShapeLayer

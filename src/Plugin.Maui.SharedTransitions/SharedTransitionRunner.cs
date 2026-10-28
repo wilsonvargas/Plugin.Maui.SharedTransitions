@@ -105,6 +105,10 @@ internal static class SharedTransitionRunner
 			if (pages.Outgoing is not null)
 				AddIncomingPage(scene, to, isPop, options.PageAnimation, pages, flights);
 
+			pages.Window?.Cache();
+			pages.Outgoing?.Cache();
+			pages.Incoming?.Cache();
+
 			await AnimateAsync(to, options, t =>
 			{
 				StepPages(pages, isPop, options.PageAnimation, t);

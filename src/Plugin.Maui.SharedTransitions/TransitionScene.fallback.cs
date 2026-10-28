@@ -27,6 +27,10 @@ internal sealed partial class SnapshotLayer
 	public partial void BringToFront()
 	{
 	}
+
+	public partial void Cache()
+	{
+	}
 }
 
 internal sealed partial class ShapeLayer
