@@ -1,3 +1,5 @@
+<img src="https://raw.githubusercontent.com/wilsonvargas/Plugin.Maui.SharedTransitions/main/assets/icon.png" width="96" align="right" alt="" />
+
 # Plugin.Maui.SharedTransitions
 
 Shared element ("hero") transitions between pages for .NET MAUI, inspired by
@@ -7,6 +9,10 @@ which was never ported to MAUI.
 Works with **Shell** and **NavigationPage** because it doesn't replace MAUI's navigation:
 it captures snapshots of the shared views, navigates without animation and animates the
 snapshots in a native overlay to the matching views of the new page.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/wilsonvargas/Plugin.Maui.SharedTransitions/main/assets/demo.gif" width="320" alt="Shared transitions between a list and a detail page with the Fade, Slide and Scale page animations" />
+</p>
 
 | Platform | Status |
 |---|---|
