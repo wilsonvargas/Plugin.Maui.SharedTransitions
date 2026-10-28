@@ -65,8 +65,10 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      # Pinned to the last workload set whose .NET for iOS works with the Xcode shipped by the runner
+      # image (10.0.402+ requires Xcode 27). Bump it when the image gets a newer Xcode.
       - name: Install workloads
-        run: dotnet workload install maui
+        run: dotnet workload install maui --version 10.0.401
 
       - name: Build library (iOS + Mac Catalyst)
         run: |
