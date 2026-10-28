@@ -28,6 +28,10 @@ internal sealed partial class SnapshotLayer
 	{
 	}
 
+	public partial void Clip(Rect rect)
+	{
+	}
+
 	public partial void Cache()
 	{
 	}

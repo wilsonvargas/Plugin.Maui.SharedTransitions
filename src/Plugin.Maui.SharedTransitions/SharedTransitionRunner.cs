@@ -40,8 +40,19 @@ internal static class SharedTransitionRunner
 		public SnapshotLayer? Window { get; init; }
 		public SnapshotLayer? Outgoing { get; init; }
 		public SnapshotLayer? Incoming { get; set; }
-		public ShapeLayer? Backdrop { get; set; }
+		public PageBackground? Backdrop { get; set; }
+
+		// Slide and Scale only animate the page content. The status and navigation bars above it change as soon as
+		// the page is pushed, so the old ones (cropped from a window snapshot) fade out like with Fade.
+		public SnapshotLayer? Bars { get; set; }
+
+		// Solid backgrounds that move with the page snapshots: on iOS a page view is transparent
+		// (its background is drawn by the navigation container), so its snapshot is transparent too.
+		public PageBackground? OutgoingBackground { get; set; }
+		public PageBackground? IncomingBackground { get; set; }
 	}
+
+	sealed record PageBackground(ShapeLayer Layer, ShapeStyle Style);
 
 	/// <summary>
 	/// Captures the shared elements of <paramref name="from"/>, navigates without animation and
@@ -75,7 +86,7 @@ internal static class SharedTransitionRunner
 			// Captured after hiding the elements, so they don't stay behind as a ghost.
 			scene.HideScrollBars(from);
 			var pages = options.PageAnimation is SharedTransitionPageAnimation.Slide or SharedTransitionPageAnimation.Scale
-				? new PageLayers { Outgoing = scene.Capture(from) }
+				? CapturePage(scene, from, flights)
 				: new PageLayers { Window = scene.CaptureWindow() };
 
 			await navigate(false);
@@ -99,6 +110,11 @@ internal static class SharedTransitionRunner
 					flight.Target = scene.Capture(target);
 				}
 
+				// Hidden right away: on iOS the next capture refreshes the screen, which would show
+				// this snapshot at its final place for one frame before the animation starts.
+				flight.Target?.Apply(flight.Target.Frame, 0);
+				flight.TargetContent?.Apply(flight.TargetContent.Frame, 0);
+
 				Hide(target, hidden);
 			}
 
@@ -106,6 +122,7 @@ internal static class SharedTransitionRunner
 				AddIncomingPage(scene, to, isPop, options.PageAnimation, pages, flights);
 
 			pages.Window?.Cache();
+			pages.Bars?.Cache();
 			pages.Outgoing?.Cache();
 			pages.Incoming?.Cache();
 
@@ -145,21 +162,64 @@ internal static class SharedTransitionRunner
 			: null;
 	}
 
+	static PageLayers CapturePage(TransitionScene scene, Page page, List<Flight> flights)
+	{
+		var pages = new PageLayers { Outgoing = scene.Capture(page) };
+		if (pages.Outgoing is not SnapshotLayer outgoing)
+			return pages;
+
+		if (outgoing.Frame.Y > 0 && scene.CaptureWindow() is SnapshotLayer window)
+		{
+			window.Clip(new Rect(0, 0, window.Frame.Width, outgoing.Frame.Y));
+			pages.Bars = window;
+		}
+
+		// Added right away: the destination page is laid out underneath before the animation starts,
+		// and it would show through a transparent snapshot (iOS) in the meantime. Added after the captures,
+		// because on iOS each capture refreshes the screen and the background starts on top of everything.
+		pages.OutgoingBackground = AddBackground(scene, outgoing.Frame, page);
+
+		outgoing.BringToFront();
+		pages.Bars?.BringToFront();
+		BringToFront(flights);
+		return pages;
+	}
+
 	// Captures the destination page (shared elements already hidden) and stacks both pages below the flights.
 	static void AddIncomingPage(TransitionScene scene, Page to, bool isPop, SharedTransitionPageAnimation animation, PageLayers pages, List<Flight> flights)
 	{
+		var outgoing = pages.Outgoing!;
 		pages.Incoming = scene.Capture(to);
+		pages.IncomingBackground = pages.Incoming is null ? null : AddBackground(scene, pages.Incoming.Frame, to);
 
 		// While zooming, both pages are translucent: a backdrop with the page color hides the real page underneath.
 		if (animation == SharedTransitionPageAnimation.Scale)
-			pages.Backdrop = scene.AddShape(pages.Outgoing!.Frame, new ShapeStyle(default, GetBackdropColor(to), null, 0));
+			pages.Backdrop = AddBackground(scene, outgoing.Frame, to);
 
 		// The page that moves on top is the new one when pushing and the old one when popping.
-		var (lower, upper) = isPop ? (pages.Incoming, pages.Outgoing) : (pages.Outgoing, pages.Incoming);
-		pages.Backdrop?.BringToFront();
-		lower?.BringToFront();
-		upper?.BringToFront();
+		pages.Backdrop?.Layer.BringToFront();
+		if (isPop)
+		{
+			pages.IncomingBackground?.Layer.BringToFront();
+			pages.Incoming?.BringToFront();
+			pages.OutgoingBackground?.Layer.BringToFront();
+			outgoing.BringToFront();
+		}
+		else
+		{
+			pages.OutgoingBackground?.Layer.BringToFront();
+			outgoing.BringToFront();
+			pages.IncomingBackground?.Layer.BringToFront();
+			pages.Incoming?.BringToFront();
+		}
 
+		// Above the pages, which can grow over them while zooming, and below the shared elements.
+		pages.Bars?.BringToFront();
+		BringToFront(flights);
+	}
+
+	static void BringToFront(List<Flight> flights)
+	{
 		foreach (var flight in flights)
 		{
 			flight.Shape?.BringToFront();
@@ -174,6 +234,12 @@ internal static class SharedTransitionRunner
 		}
 	}
 
+	static PageBackground AddBackground(TransitionScene scene, Rect frame, Page page)
+	{
+		var style = new ShapeStyle(default, GetBackdropColor(page), null, 0);
+		return new PageBackground(scene.AddShape(frame, style), style);
+	}
+
 	static Color GetBackdropColor(Page page)
 	{
 		if (((IView)page).Background is SolidPaint { Color: Color color } && color.Alpha > 0)
@@ -185,6 +251,7 @@ internal static class SharedTransitionRunner
 	static void StepPages(PageLayers pages, bool isPop, SharedTransitionPageAnimation animation, double t)
 	{
 		pages.Window?.Apply(pages.Window.Frame, 1 - t);
+		pages.Bars?.Apply(pages.Bars.Frame, 1 - t);
 
 		if (pages.Outgoing is not SnapshotLayer outgoing)
 			return;
@@ -195,13 +262,15 @@ internal static class SharedTransitionRunner
 			// Push: the new page covers the old one, which moves a bit to the leading edge. Pop: the reverse.
 			if (isPop)
 			{
-				outgoing.Apply(outgoing.Frame.Offset(outgoing.Frame.Width * t, 0), 1);
-				incoming?.Apply(incoming.Frame.Offset(-incoming.Frame.Width * SlideParallax * (1 - t), 0), 1);
+				ApplyPage(outgoing, pages.OutgoingBackground, outgoing.Frame.Offset(outgoing.Frame.Width * t, 0), 1);
+				if (incoming is not null)
+					ApplyPage(incoming, pages.IncomingBackground, incoming.Frame.Offset(-incoming.Frame.Width * SlideParallax * (1 - t), 0), 1);
 			}
 			else
 			{
-				outgoing.Apply(outgoing.Frame.Offset(-outgoing.Frame.Width * SlideParallax * t, 0), 1);
-				incoming?.Apply(incoming.Frame.Offset(incoming.Frame.Width * (1 - t), 0), 1);
+				ApplyPage(outgoing, pages.OutgoingBackground, outgoing.Frame.Offset(-outgoing.Frame.Width * SlideParallax * t, 0), 1);
+				if (incoming is not null)
+					ApplyPage(incoming, pages.IncomingBackground, incoming.Frame.Offset(incoming.Frame.Width * (1 - t), 0), 1);
 			}
 
 			return;
@@ -210,8 +279,15 @@ internal static class SharedTransitionRunner
 		// Scale: pushing zooms forward (the old page grows and fades, the new one grows into place);
 		// popping zooms backward.
 		var direction = isPop ? -1 : 1;
-		outgoing.Apply(ScaleAroundCenter(outgoing.Frame, 1 + direction * ScaleAmount * t), 1 - t);
-		incoming?.Apply(ScaleAroundCenter(incoming.Frame, 1 - direction * ScaleAmount * (1 - t)), t);
+		ApplyPage(outgoing, pages.OutgoingBackground, ScaleAroundCenter(outgoing.Frame, 1 + direction * ScaleAmount * t), 1 - t);
+		if (incoming is not null)
+			ApplyPage(incoming, pages.IncomingBackground, ScaleAroundCenter(incoming.Frame, 1 - direction * ScaleAmount * (1 - t)), t);
+	}
+
+	static void ApplyPage(SnapshotLayer page, PageBackground? background, Rect frame, double opacity)
+	{
+		page.Apply(frame, opacity);
+		background?.Layer.Apply(frame, background.Style, opacity);
 	}
 
 	static void Step(Flight flight, SharedTransitionPath path, double t)
