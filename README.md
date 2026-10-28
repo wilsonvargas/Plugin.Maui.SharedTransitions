@@ -15,6 +15,11 @@ snapshots in a native overlay to the matching views of the new page.
 | Mac Catalyst | ✅ (compiles, not tested yet) |
 | Windows | Falls back to the default navigation animation |
 
+## Requirements
+
+.NET 9 or .NET 10 with .NET MAUI. The package targets both, each one built against its own MAUI version
+(MAUI 9 is out of support since May 2026; .NET 10 is recommended).
+
 ## Setup
 
 ```csharp
@@ -103,7 +108,7 @@ src/Plugin.Maui.SharedTransitions/      the library (NuGet package)
 samples/SharedTransitions.Sample/       demo app (Shell, list → detail)
 ```
 
-Requirements: .NET 10 SDK with the `maui`/`android`/`ios` workloads.
+Requirements: .NET 10 SDK with the `maui` workload (it also builds the .NET 9 targets).
 
 ```bash
 # Library, all target frameworks
