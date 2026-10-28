@@ -199,6 +199,9 @@ internal sealed partial class SnapshotLayer
 
 	public partial void BringToFront() => _view.BringToFront();
 
+	public partial void Clip(Rect rect) =>
+		_view.ClipBounds = new Android.Graphics.Rect((int)rect.X, (int)rect.Y, (int)Math.Ceiling(rect.Right), (int)Math.Ceiling(rect.Bottom));
+
 	// Without it, a translucent full-page Picture is replayed into an offscreen buffer on every frame.
 	public partial void Cache() => _view.SetLayerType(LayerType.Hardware, null);
 }

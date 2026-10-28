@@ -47,6 +47,9 @@ internal sealed partial class SnapshotLayer
 	/// <summary>Places the snapshot above every other layer of the overlay.</summary>
 	public partial void BringToFront();
 
+	/// <summary>Shows only the part of the snapshot inside <paramref name="rect"/>, in the snapshot's own coordinates.</summary>
+	public partial void Clip(Rect rect);
+
 	/// <summary>
 	/// Renders the snapshot once into a GPU texture, so moving, zooming and fading it is cheap.
 	/// Meant for whole pages, which barely scale: a texture would look blurry on elements that grow a lot.

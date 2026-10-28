@@ -124,6 +124,13 @@ internal sealed partial class SnapshotLayer
 
 	public partial void BringToFront() => _view.Superview?.BringSubviewToFront(_view);
 
+	public partial void Clip(Rect rect) =>
+		_view.Layer.Mask = new CALayer
+		{
+			Frame = new CGRect(rect.X, rect.Y, rect.Width, rect.Height),
+			BackgroundColor = UIColor.Black.CGColor,
+		};
+
 	// Snapshots are already bitmaps that Core Animation composites on the GPU.
 	public partial void Cache()
 	{
