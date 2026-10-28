@@ -1,4 +1,6 @@
-<img src="https://raw.githubusercontent.com/wilsonvargas/Plugin.Maui.SharedTransitions/main/assets/icon.png" width="96" align="right" alt="" />
+<p align="center">
+  <img src="https://raw.githubusercontent.com/wilsonvargas/Plugin.Maui.SharedTransitions/main/assets/icon.png" width="128" alt="Plugin.Maui.SharedTransitions icon" />
+</p>
 
 # Plugin.Maui.SharedTransitions
 

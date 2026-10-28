@@ -24,13 +24,24 @@
 
 		<!-- NuGet -->
 		<PackageId>Plugin.Maui.SharedTransitions</PackageId>
-		<Version>0.1.0-preview.1</Version>
+		<Version>0.1.0</Version>
 		<Authors>Wilson Vargas</Authors>
 		<Description>Shared element transitions between pages for .NET MAUI (Shell and NavigationPage).</Description>
 		<PackageTags>maui;dotnet-maui;animation;transitions;shared-element;hero</PackageTags>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
+		<Copyright>Copyright (c) 2026 Wilson Vargas</Copyright>
+		<PackageProjectUrl>https://github.com/wilsonvargas/Plugin.Maui.SharedTransitions</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/wilsonvargas/Plugin.Maui.SharedTransitions</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+
+		<!-- SourceLink (built into the SDK) and a symbols package, so apps can step into the plugin while debugging. -->
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
 	</PropertyGroup>
 
 	<ItemGroup>
