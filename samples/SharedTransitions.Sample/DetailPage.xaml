@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="SharedTransitions.Sample.DetailPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:SharedTransitions.Sample"
+    xmlns:st="clr-namespace:Plugin.Maui.SharedTransitions;assembly=Plugin.Maui.SharedTransitions"
+    x:DataType="local:Destination"
+    Title="{Binding Region}">
+
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior x:Name="BackBehavior" />
+    </Shell.BackButtonBehavior>
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="16" Padding="0,0,0,24">
+            <Grid HeightRequest="280">
+                <Border
+                    st:SharedTransition.Name="card"
+                    BackgroundColor="{Binding Color}"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 0,0,32,32" />
+                <Label
+                    st:SharedTransition.Name="emoji"
+                    Text="{Binding Emoji}"
+                    FontSize="120"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center" />
+            </Grid>
+
+            <Label
+                st:SharedTransition.Name="title"
+                Text="{Binding Name}"
+                FontSize="32"
+                FontAttributes="Bold"
+                Margin="24,0" />
+
+            <Label Text="{Binding Description}" FontSize="17" Margin="24,0" />
+
+            <Button Text="Volver" Clicked="OnBackClicked" Margin="24,8" HorizontalOptions="Start" />
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
