@@ -1,7 +1,11 @@
 name: CI
 
+# Pull requests only run the Windows job (library + Android) to keep them fast;
+# merges to main also build iOS and Mac Catalyst on macOS.
 on:
   pull_request:
+    branches: [main]
+  push:
     branches: [main]
   workflow_dispatch:
     inputs:
@@ -12,7 +16,8 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Superseded pull request runs are cancelled; every merge to main is built.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   DOTNET_NOLOGO: true
@@ -51,7 +56,7 @@ jobs:
 
   macos:
     name: macOS (iOS + Mac Catalyst)
-    if: github.event_name == 'workflow_dispatch' && inputs.macos
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.macos)
     runs-on: macos-26
     timeout-minutes: 60
     steps:
