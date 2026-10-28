@@ -11,7 +11,8 @@ snapshots in a native overlay to the matching views of the new page.
 | Platform | Status |
 |---|---|
 | Android | ✅ |
-| iOS / Mac Catalyst | ✅ (compiles, pending device testing) |
+| iOS | ✅ (tested on the simulator) |
+| Mac Catalyst | ✅ (compiles, not tested yet) |
 | Windows | Falls back to the default navigation animation |
 
 ## Setup
@@ -74,7 +75,7 @@ await this.PopWithSharedTransitionAsync(options);
 | `Duration` | Milliseconds | `250` |
 | `Easing` | Any MAUI `Easing` | `Easing.CubicOut` |
 
-With `Slide` and `Scale` the navigation bar of the new page appears right away; only the page content is animated.
+With `Slide` and `Scale` only the page content moves; the status and navigation bars crossfade like with `Fade`.
 
 ## How it works
 
@@ -113,6 +114,16 @@ dotnet build samples/SharedTransitions.Sample -f net10.0-android -t:Run
 
 # NuGet package
 dotnet pack src/Plugin.Maui.SharedTransitions -c Release
+```
+
+The sample has an unattended demo mode, useful on a simulator where tapping the screen isn't easy: launched with
+`SHARED_TRANSITIONS_DEMO=1`, it pushes and pops a card with every page animation by itself and logs each step.
+
+```bash
+# iOS simulator (on a Mac)
+dotnet build samples/SharedTransitions.Sample -f net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64
+xcrun simctl install booted samples/SharedTransitions.Sample/bin/Debug/net10.0-ios/iossimulator-arm64/SharedTransitions.Sample.app
+SIMCTL_CHILD_SHARED_TRANSITIONS_DEMO=1 xcrun simctl launch --console-pty booted com.companyname.sharedtransitions.sample
 ```
 
 Platform code is selected by file suffix (see the `.csproj`): `*.android.cs`, `*.macios.cs`
