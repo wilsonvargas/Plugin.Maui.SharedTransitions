@@ -9,6 +9,8 @@ internal sealed partial class TransitionScene
 
 	public partial SnapshotLayer? Capture(VisualElement element) => null;
 
+	public partial ShapeLayer AddShape(Rect frame, ShapeStyle style) => new();
+
 	public partial SnapshotLayer? CaptureWindow() => null;
 
 	public partial void Dispose()
@@ -19,6 +21,13 @@ internal sealed partial class TransitionScene
 internal sealed partial class SnapshotLayer
 {
 	public partial void Apply(Rect frame, double opacity)
+	{
+	}
+}
+
+internal sealed partial class ShapeLayer
+{
+	public partial void Apply(Rect frame, ShapeStyle style, double opacity)
 	{
 	}
 }

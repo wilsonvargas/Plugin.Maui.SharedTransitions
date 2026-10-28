@@ -1,4 +1,6 @@
+using CoreAnimation;
 using CoreGraphics;
+using Microsoft.Maui.Platform;
 using UIKit;
 
 namespace Plugin.Maui.SharedTransitions;
@@ -45,6 +47,24 @@ internal sealed partial class TransitionScene
 			return null;
 
 		return AddLayer(Render(view), frame, atBottom: false);
+	}
+
+	public partial ShapeLayer AddShape(Rect frame, ShapeStyle style)
+	{
+		// Full-size view, so the shape can be redrawn at any frame without relayout.
+		var view = new UIView(_container.Bounds)
+		{
+			BackgroundColor = UIColor.Clear,
+			UserInteractionEnabled = false,
+			AutoresizingMask = UIViewAutoresizing.FlexibleDimensions,
+		};
+		var shape = new CAShapeLayer();
+		view.Layer.AddSublayer(shape);
+		_container.AddSubview(view);
+
+		var layer = new ShapeLayer(view, shape);
+		layer.Apply(frame, style, 1);
+		return layer;
 	}
 
 	public partial SnapshotLayer? CaptureWindow()
@@ -105,6 +125,60 @@ internal sealed partial class SnapshotLayer
 	public partial void Apply(Rect frame, double opacity)
 	{
 		_view.Frame = new CGRect(frame.X, frame.Y, frame.Width, frame.Height);
+		_view.Alpha = (nfloat)opacity;
+	}
+}
+
+internal sealed partial class ShapeLayer
+{
+	readonly UIView _view;
+	readonly CAShapeLayer _shape;
+
+	internal ShapeLayer(UIView view, CAShapeLayer shape)
+	{
+		_view = view;
+		_shape = shape;
+	}
+
+	public partial void Apply(Rect frame, ShapeStyle style, double opacity)
+	{
+		// The stroke is centered on the outline, so it's inset by half its thickness to stay inside the frame.
+		var inset = style.StrokeThickness / 2;
+		var left = frame.X + inset;
+		var top = frame.Y + inset;
+		var right = frame.Right - inset;
+		var bottom = frame.Bottom - inset;
+		var maxRadius = Math.Max(0, Math.Min(right - left, bottom - top) / 2);
+
+		nfloat Radius(double radius) => (nfloat)Math.Clamp(radius - inset, 0, maxRadius);
+		var topLeft = Radius(style.CornerRadius.TopLeft);
+		var topRight = Radius(style.CornerRadius.TopRight);
+		var bottomRight = Radius(style.CornerRadius.BottomRight);
+		var bottomLeft = Radius(style.CornerRadius.BottomLeft);
+
+		var path = new CGPath();
+		path.MoveToPoint((nfloat)left + topLeft, (nfloat)top);
+		path.AddLineToPoint((nfloat)right - topRight, (nfloat)top);
+		path.AddArcToPoint((nfloat)right, (nfloat)top, (nfloat)right, (nfloat)top + topRight, topRight);
+		path.AddLineToPoint((nfloat)right, (nfloat)bottom - bottomRight);
+		path.AddArcToPoint((nfloat)right, (nfloat)bottom, (nfloat)right - bottomRight, (nfloat)bottom, bottomRight);
+		path.AddLineToPoint((nfloat)left + bottomLeft, (nfloat)bottom);
+		path.AddArcToPoint((nfloat)left, (nfloat)bottom, (nfloat)left, (nfloat)bottom - bottomLeft, bottomLeft);
+		path.AddLineToPoint((nfloat)left, (nfloat)top + topLeft);
+		path.AddArcToPoint((nfloat)left, (nfloat)top, (nfloat)left + topLeft, (nfloat)top, topLeft);
+		path.CloseSubpath();
+
+		// Without this, Core Animation would animate every change implicitly and lag behind the transition.
+		CATransaction.Begin();
+		CATransaction.DisableActions = true;
+		var previous = _shape.Path;
+		_shape.Path = path;
+		_shape.FillColor = style.Fill.ToCGColor();
+		_shape.StrokeColor = (style.Stroke ?? Colors.Transparent).ToCGColor();
+		_shape.LineWidth = (nfloat)style.StrokeThickness;
+		CATransaction.Commit();
+		previous?.Dispose();
+
 		_view.Alpha = (nfloat)opacity;
 	}
 }
