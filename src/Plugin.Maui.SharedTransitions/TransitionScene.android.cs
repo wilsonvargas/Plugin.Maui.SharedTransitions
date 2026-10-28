@@ -267,6 +267,9 @@ internal sealed class ShapeView : AView
 		_radii[corner * 2 + 1] = value;
 	}
 
+	// A single path: fading it doesn't need an offscreen buffer, which matters for full-page backgrounds.
+	public override bool HasOverlappingRendering => false;
+
 	protected override void OnDraw(Canvas canvas)
 	{
 		canvas.DrawPath(_path, _fill);
