@@ -73,8 +73,10 @@ jobs:
           dotnet build ${{ env.LIBRARY }} -c Release -f net10.0-ios -warnaserror
           dotnet build ${{ env.LIBRARY }} -c Release -f net10.0-maccatalyst -warnaserror
 
+      # The latest .NET for iOS workload can require a newer Xcode than the runner image ships,
+      # so the Xcode version check is skipped for the sample builds.
       - name: Build iOS sample (simulator)
-        run: dotnet build ${{ env.SAMPLE }} -c Debug -f net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64
+        run: dotnet build ${{ env.SAMPLE }} -c Debug -f net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64 -p:ValidateXcodeVersion=false
 
       - name: Build Mac Catalyst sample
-        run: dotnet build ${{ env.SAMPLE }} -c Debug -f net10.0-maccatalyst
+        run: dotnet build ${{ env.SAMPLE }} -c Debug -f net10.0-maccatalyst -p:ValidateXcodeVersion=false
