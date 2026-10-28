@@ -65,18 +65,18 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      # Pinned to the last workload set whose .NET for iOS works with the Xcode shipped by the runner
+      # image (10.0.402+ requires Xcode 27). Bump it when the image gets a newer Xcode.
       - name: Install workloads
-        run: dotnet workload install maui
+        run: dotnet workload install maui --version 10.0.401
 
       - name: Build library (iOS + Mac Catalyst)
         run: |
           dotnet build ${{ env.LIBRARY }} -c Release -f net10.0-ios -warnaserror
           dotnet build ${{ env.LIBRARY }} -c Release -f net10.0-maccatalyst -warnaserror
 
-      # The latest .NET for iOS workload can require a newer Xcode than the runner image ships,
-      # so the Xcode version check is skipped for the sample builds.
       - name: Build iOS sample (simulator)
-        run: dotnet build ${{ env.SAMPLE }} -c Debug -f net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64 -p:ValidateXcodeVersion=false
+        run: dotnet build ${{ env.SAMPLE }} -c Debug -f net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64
 
       - name: Build Mac Catalyst sample
-        run: dotnet build ${{ env.SAMPLE }} -c Debug -f net10.0-maccatalyst -p:ValidateXcodeVersion=false
+        run: dotnet build ${{ env.SAMPLE }} -c Debug -f net10.0-maccatalyst
