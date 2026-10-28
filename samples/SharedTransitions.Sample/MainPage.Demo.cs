@@ -56,6 +56,11 @@ public partial class MainPage
 		{
 			Log($"error {ex}");
 		}
+		finally
+		{
+			// Back to the options of the pickers, so tapping the app after the demo uses the normal speed.
+			OnOptionsChanged(null, EventArgs.Empty);
+		}
 	}
 
 	static void Log(string message) => Console.WriteLine($"DEMO {DateTime.UtcNow:HH:mm:ss.fff} {message}");
