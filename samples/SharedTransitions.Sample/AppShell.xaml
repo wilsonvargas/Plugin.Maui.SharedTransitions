@@ -7,7 +7,7 @@
     Title="SharedTransitions.Sample">
 
     <ShellContent
-        Title="Destinos"
+        Title="Fruits"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
 

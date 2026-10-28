@@ -4,10 +4,10 @@ namespace SharedTransitions.Sample;
 
 public partial class DetailPage : ContentPage
 {
-	public DetailPage(Destination destination)
+	public DetailPage(Fruit fruit)
 	{
 		InitializeComponent();
-		BindingContext = destination;
+		BindingContext = fruit;
 
 		// The Shell back arrow also goes back with the shared transition.
 		BackBehavior.Command = new Command(GoBack);

@@ -6,25 +6,25 @@
     xmlns:local="clr-namespace:SharedTransitions.Sample"
     xmlns:st="clr-namespace:Plugin.Maui.SharedTransitions;assembly=Plugin.Maui.SharedTransitions"
     x:DataType="local:MainPage"
-    Title="Destinos del Perú">
+    Title="Fruits">
 
     <Grid RowDefinitions="Auto,*">
         <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" Margin="16,8,16,0">
-            <Label Text="Resto de la página" FontSize="12" TextColor="Gray" />
-            <Label Grid.Column="1" Text="Elementos compartidos" FontSize="12" TextColor="Gray" />
-            <Picker x:Name="PageAnimationPicker" Grid.Row="1" Title="Resto de la página" SelectedIndexChanged="OnOptionsChanged" />
-            <Picker x:Name="PathPicker" Grid.Row="1" Grid.Column="1" Title="Elementos compartidos" SelectedIndexChanged="OnOptionsChanged" />
+            <Label Text="Page animation" FontSize="12" TextColor="Gray" />
+            <Label Grid.Column="1" Text="Shared elements path" FontSize="12" TextColor="Gray" />
+            <Picker x:Name="PageAnimationPicker" Grid.Row="1" Title="Page animation" SelectedIndexChanged="OnOptionsChanged" />
+            <Picker x:Name="PathPicker" Grid.Row="1" Grid.Column="1" Title="Shared elements path" SelectedIndexChanged="OnOptionsChanged" />
         </Grid>
 
-        <CollectionView x:Name="DestinationsView" Grid.Row="1" SelectionMode="None" Margin="16,8">
+        <CollectionView x:Name="FruitsView" Grid.Row="1" SelectionMode="None" Margin="16,8">
             <CollectionView.ItemsLayout>
                 <GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="12" VerticalItemSpacing="12" />
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="local:Destination">
+                <DataTemplate x:DataType="local:Fruit">
                     <VerticalStackLayout Spacing="8">
                         <VerticalStackLayout.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnDestinationTapped" />
+                            <TapGestureRecognizer Tapped="OnFruitTapped" />
                         </VerticalStackLayout.GestureRecognizers>
 
                         <Grid HeightRequest="140">
@@ -49,7 +49,7 @@
                             Text="{Binding Name}"
                             FontSize="16"
                             FontAttributes="Bold" />
-                        <Label Text="{Binding Region}" FontSize="13" TextColor="Gray" />
+                        <Label Text="{Binding Category}" FontSize="13" TextColor="Gray" />
                     </VerticalStackLayout>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
