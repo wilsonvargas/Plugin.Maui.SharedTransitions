@@ -11,7 +11,7 @@ snapshots in a native overlay to the matching views of the new page.
 | Platform | Status |
 |---|---|
 | Android | ✅ |
-| iOS | ✅ (tested on the simulator) |
+| iOS | ✅ |
 | Mac Catalyst | ✅ (compiles, not tested yet) |
 | Windows | Falls back to the default navigation animation |
 
