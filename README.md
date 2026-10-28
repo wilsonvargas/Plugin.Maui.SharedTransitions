@@ -19,7 +19,7 @@ snapshots in a native overlay to the matching views of the new page.
 ```csharp
 builder
     .UseMauiApp<App>()
-    .UseSharedTransitions(o => o.Duration = 300); // optional
+    .UseSharedTransitions(o => o.Duration = 250); // optional
 ```
 
 ## Usage
@@ -56,12 +56,14 @@ To animate the back button too, call `PopWithSharedTransitionAsync` from
 3. When the destination is laid out, the matching views are measured and captured.
 4. The snapshots move and scale to the new frames with a crossfade while the old page fades out.
 
+A `Border` with a solid background and a rectangle/rounded rectangle shape is drawn natively instead,
+so its corner radius, background, stroke color and thickness morph smoothly; its content flies as a snapshot on top.
 Views without a match on the other page just fade out.
 
 ## Limitations (v0.1)
 
 - Back gestures that MAUI handles by itself (iOS swipe-back) use the default animation.
-- Corner radius and colors are not interpolated: they crossfade between both snapshots.
+- Only `Border` morphs its shape and colors; any other view (or a `Border` with a gradient) crossfades between both snapshots.
 - Content loaded asynchronously in the destination (remote images) may appear at the end of the flight.
 
 ## Development
