@@ -8,43 +8,52 @@
     x:DataType="local:MainPage"
     Title="Destinos del Perú">
 
-    <CollectionView x:Name="DestinationsView" SelectionMode="None" Margin="16,8">
-        <CollectionView.ItemsLayout>
-            <GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="12" VerticalItemSpacing="12" />
-        </CollectionView.ItemsLayout>
-        <CollectionView.ItemTemplate>
-            <DataTemplate x:DataType="local:Destination">
-                <VerticalStackLayout Spacing="8">
-                    <VerticalStackLayout.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnDestinationTapped" />
-                    </VerticalStackLayout.GestureRecognizers>
+    <Grid RowDefinitions="Auto,*">
+        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" Margin="16,8,16,0">
+            <Label Text="Resto de la página" FontSize="12" TextColor="Gray" />
+            <Label Grid.Column="1" Text="Elementos compartidos" FontSize="12" TextColor="Gray" />
+            <Picker x:Name="PageAnimationPicker" Grid.Row="1" Title="Resto de la página" SelectedIndexChanged="OnOptionsChanged" />
+            <Picker x:Name="PathPicker" Grid.Row="1" Grid.Column="1" Title="Elementos compartidos" SelectedIndexChanged="OnOptionsChanged" />
+        </Grid>
 
-                    <Grid HeightRequest="140">
-                        <Border
-                            st:SharedTransition.Name="card"
-                            st:SharedTransition.Group="{Binding Id}"
-                            BackgroundColor="{Binding Color}"
-                            StrokeThickness="0"
-                            StrokeShape="RoundRectangle 20" />
+        <CollectionView x:Name="DestinationsView" Grid.Row="1" SelectionMode="None" Margin="16,8">
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="12" VerticalItemSpacing="12" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="local:Destination">
+                    <VerticalStackLayout Spacing="8">
+                        <VerticalStackLayout.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnDestinationTapped" />
+                        </VerticalStackLayout.GestureRecognizers>
+
+                        <Grid HeightRequest="140">
+                            <Border
+                                st:SharedTransition.Name="card"
+                                st:SharedTransition.Group="{Binding Id}"
+                                BackgroundColor="{Binding Color}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 20" />
+                            <Label
+                                st:SharedTransition.Name="emoji"
+                                st:SharedTransition.Group="{Binding Id}"
+                                Text="{Binding Emoji}"
+                                FontSize="48"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center" />
+                        </Grid>
+
                         <Label
-                            st:SharedTransition.Name="emoji"
+                            st:SharedTransition.Name="title"
                             st:SharedTransition.Group="{Binding Id}"
-                            Text="{Binding Emoji}"
-                            FontSize="48"
-                            HorizontalOptions="Center"
-                            VerticalOptions="Center" />
-                    </Grid>
-
-                    <Label
-                        st:SharedTransition.Name="title"
-                        st:SharedTransition.Group="{Binding Id}"
-                        Text="{Binding Name}"
-                        FontSize="16"
-                        FontAttributes="Bold" />
-                    <Label Text="{Binding Region}" FontSize="13" TextColor="Gray" />
-                </VerticalStackLayout>
-            </DataTemplate>
-        </CollectionView.ItemTemplate>
-    </CollectionView>
+                            Text="{Binding Name}"
+                            FontSize="16"
+                            FontAttributes="Bold" />
+                        <Label Text="{Binding Region}" FontSize="13" TextColor="Gray" />
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
 
 </ContentPage>

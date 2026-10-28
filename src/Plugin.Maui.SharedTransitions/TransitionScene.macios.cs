@@ -127,6 +127,13 @@ internal sealed partial class SnapshotLayer
 		_view.Frame = new CGRect(frame.X, frame.Y, frame.Width, frame.Height);
 		_view.Alpha = (nfloat)opacity;
 	}
+
+	public partial void BringToFront() => _view.Superview?.BringSubviewToFront(_view);
+
+	// Snapshots are already bitmaps that Core Animation composites on the GPU.
+	public partial void Cache()
+	{
+	}
 }
 
 internal sealed partial class ShapeLayer
@@ -181,4 +188,6 @@ internal sealed partial class ShapeLayer
 
 		_view.Alpha = (nfloat)opacity;
 	}
+
+	public partial void BringToFront() => _view.Superview?.BringSubviewToFront(_view);
 }

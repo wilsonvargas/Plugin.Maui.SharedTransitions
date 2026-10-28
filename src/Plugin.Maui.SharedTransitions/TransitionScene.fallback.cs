@@ -23,11 +23,23 @@ internal sealed partial class SnapshotLayer
 	public partial void Apply(Rect frame, double opacity)
 	{
 	}
+
+	public partial void BringToFront()
+	{
+	}
+
+	public partial void Cache()
+	{
+	}
 }
 
 internal sealed partial class ShapeLayer
 {
 	public partial void Apply(Rect frame, ShapeStyle style, double opacity)
+	{
+	}
+
+	public partial void BringToFront()
 	{
 	}
 }

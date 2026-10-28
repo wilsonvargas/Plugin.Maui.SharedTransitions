@@ -43,6 +43,15 @@ internal sealed partial class SnapshotLayer
 
 	/// <summary>Moves and scales the snapshot to <paramref name="frame"/> with the given opacity.</summary>
 	public partial void Apply(Rect frame, double opacity);
+
+	/// <summary>Places the snapshot above every other layer of the overlay.</summary>
+	public partial void BringToFront();
+
+	/// <summary>
+	/// Renders the snapshot once into a GPU texture, so moving, zooming and fading it is cheap.
+	/// Meant for whole pages, which barely scale: a texture would look blurry on elements that grow a lot.
+	/// </summary>
+	public partial void Cache();
 }
 
 /// <summary>
@@ -52,4 +61,7 @@ internal sealed partial class ShapeLayer
 {
 	/// <summary>Draws the shape at <paramref name="frame"/> with the given style and opacity.</summary>
 	public partial void Apply(Rect frame, ShapeStyle style, double opacity);
+
+	/// <summary>Places the shape above every other layer of the overlay.</summary>
+	public partial void BringToFront();
 }

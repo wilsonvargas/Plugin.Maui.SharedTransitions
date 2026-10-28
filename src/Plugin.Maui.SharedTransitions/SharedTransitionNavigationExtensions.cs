@@ -30,6 +30,7 @@ public static class SharedTransitionNavigationExtensions
 			source,
 			destination,
 			group,
+			isPop: false,
 			animated => source.Navigation.PushAsync(destination, animated),
 			options ?? SharedTransitionOptions.Default);
 	}
@@ -52,6 +53,7 @@ public static class SharedTransitionNavigationExtensions
 			current,
 			previous,
 			record.Group,
+			isPop: true,
 			animated => current.Navigation.PopAsync(animated),
 			options ?? SharedTransitionOptions.Default);
 	}
