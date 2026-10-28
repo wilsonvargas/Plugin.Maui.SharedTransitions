@@ -22,5 +22,5 @@ public partial class DetailPage : ContentPage
 		return true;
 	}
 
-	async void GoBack() => await this.PopWithSharedTransitionAsync();
+	async void GoBack() => await this.PopWithSharedTransitionAsync(MainPage.TransitionOptions);
 }

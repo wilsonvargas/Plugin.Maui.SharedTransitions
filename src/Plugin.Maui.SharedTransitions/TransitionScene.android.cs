@@ -196,6 +196,8 @@ internal sealed partial class SnapshotLayer
 		_view.ScaleY = (float)(frame.Height / Frame.Height);
 		_view.Alpha = (float)opacity;
 	}
+
+	public partial void BringToFront() => _view.BringToFront();
 }
 
 internal sealed partial class ShapeLayer
@@ -209,6 +211,8 @@ internal sealed partial class ShapeLayer
 		_view.Update(frame, style);
 		_view.Alpha = (float)opacity;
 	}
+
+	public partial void BringToFront() => _view.BringToFront();
 }
 
 // Full-size view that draws a rounded rectangle at any frame, so resizing it never triggers a layout pass.

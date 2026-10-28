@@ -49,6 +49,33 @@ await this.PopWithSharedTransitionAsync();
 To animate the back button too, call `PopWithSharedTransitionAsync` from
 `Shell.BackButtonBehavior` and `OnBackButtonPressed` (see the sample).
 
+## Animation styles
+
+Choose how the rest of the page changes and the path of the shared elements, globally or per navigation:
+
+```csharp
+// Defaults for the whole app
+builder.UseSharedTransitions(o =>
+{
+    o.PageAnimation = SharedTransitionPageAnimation.Slide;
+    o.Path = SharedTransitionPath.Arc;
+});
+
+// Only for one navigation (copies the defaults and changes some values)
+var options = SharedTransitionOptions.Default.With(o => o.PageAnimation = SharedTransitionPageAnimation.Scale);
+await this.PushWithSharedTransitionAsync(new DetailPage(item), group: item.Id, options);
+await this.PopWithSharedTransitionAsync(options);
+```
+
+| Option | Values | Default |
+|---|---|---|
+| `PageAnimation` | `Fade`: the previous page fades out over the new one<br>`Slide`: the new page slides in from the trailing edge (and back out on pop)<br>`Scale`: the pages zoom and crossfade, forward on push and backward on pop<br>`None`: only the shared elements are animated | `Fade` |
+| `Path` | `Linear`: straight line<br>`Arc`: curved path that leaves horizontally, more natural for diagonal movements | `Linear` |
+| `Duration` | Milliseconds | `250` |
+| `Easing` | Any MAUI `Easing` | `Easing.CubicOut` |
+
+With `Slide` and `Scale` the navigation bar of the new page appears right away; only the page content is animated.
+
 ## How it works
 
 1. Snapshots of the shared views (children before parents) and of the window are placed in an overlay above everything.

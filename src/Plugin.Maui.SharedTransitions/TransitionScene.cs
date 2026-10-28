@@ -43,6 +43,9 @@ internal sealed partial class SnapshotLayer
 
 	/// <summary>Moves and scales the snapshot to <paramref name="frame"/> with the given opacity.</summary>
 	public partial void Apply(Rect frame, double opacity);
+
+	/// <summary>Places the snapshot above every other layer of the overlay.</summary>
+	public partial void BringToFront();
 }
 
 /// <summary>
@@ -52,4 +55,7 @@ internal sealed partial class ShapeLayer
 {
 	/// <summary>Draws the shape at <paramref name="frame"/> with the given style and opacity.</summary>
 	public partial void Apply(Rect frame, ShapeStyle style, double opacity);
+
+	/// <summary>Places the shape above every other layer of the overlay.</summary>
+	public partial void BringToFront();
 }

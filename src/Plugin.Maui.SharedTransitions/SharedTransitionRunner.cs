@@ -6,6 +6,12 @@ internal static class SharedTransitionRunner
 {
 	const string AnimationName = "Plugin.Maui.SharedTransitions";
 
+	// Slide: how far the page underneath moves, as a fraction of its width (parallax).
+	const double SlideParallax = 0.3;
+
+	// Scale: how much the pages zoom in or out.
+	const double ScaleAmount = 0.1;
+
 	static bool _isRunning;
 
 	// A shared element on its way to the destination. Simple borders fly as a native shape that morphs
@@ -25,11 +31,20 @@ internal static class SharedTransitionRunner
 		public SnapshotLayer? TargetContent { get; set; }
 	}
 
+	// The rest of both pages, animated below the shared elements according to the page animation.
+	sealed class PageLayers
+	{
+		public SnapshotLayer? Window { get; init; }
+		public SnapshotLayer? Outgoing { get; init; }
+		public SnapshotLayer? Incoming { get; set; }
+		public ShapeLayer? Backdrop { get; set; }
+	}
+
 	/// <summary>
 	/// Captures the shared elements of <paramref name="from"/>, navigates without animation and
 	/// animates the snapshots to the matching elements of <paramref name="to"/>.
 	/// </summary>
-	public static async Task RunAsync(Page from, Page to, object? group, Func<bool, Task> navigate, SharedTransitionOptions options)
+	public static async Task RunAsync(Page from, Page to, object? group, bool isPop, Func<bool, Task> navigate, SharedTransitionOptions options)
 	{
 		var sources = SharedElementFinder.Find(from, group);
 		var scene = _isRunning || sources.Count == 0 ? null : TransitionScene.TryCreate(from);
@@ -56,7 +71,12 @@ internal static class SharedTransitionRunner
 
 			// Captured after hiding the elements, so they don't stay behind as a ghost.
 			scene.HideScrollBars(from);
-			var background = scene.CaptureWindow();
+			var pages = options.PageAnimation switch
+			{
+				SharedTransitionPageAnimation.Fade => new PageLayers { Window = scene.CaptureWindow() },
+				SharedTransitionPageAnimation.Slide or SharedTransitionPageAnimation.Scale => new PageLayers { Outgoing = scene.Capture(from) },
+				_ => new PageLayers(),
+			};
 
 			await navigate(false);
 			scene.HideScrollBars(to);
@@ -82,12 +102,15 @@ internal static class SharedTransitionRunner
 				Hide(target, hidden);
 			}
 
+			if (pages.Outgoing is not null)
+				AddIncomingPage(scene, to, isPop, options.PageAnimation, pages, flights);
+
 			await AnimateAsync(to, options, t =>
 			{
-				background?.Apply(background.Frame, 1 - t);
+				StepPages(pages, isPop, options.PageAnimation, t);
 
 				foreach (var flight in flights)
-					Step(flight, t);
+					Step(flight, options.Path, t);
 			});
 		}
 		finally
@@ -116,7 +139,76 @@ internal static class SharedTransitionRunner
 		return scene.Capture(element) is SnapshotLayer layer ? new Flight(name, layer.Frame) { Source = layer } : null;
 	}
 
-	static void Step(Flight flight, double t)
+	// Captures the destination page (shared elements already hidden) and stacks both pages below the flights.
+	static void AddIncomingPage(TransitionScene scene, Page to, bool isPop, SharedTransitionPageAnimation animation, PageLayers pages, List<Flight> flights)
+	{
+		pages.Incoming = scene.Capture(to);
+
+		// While zooming, both pages are translucent: a backdrop with the page color hides the real page underneath.
+		if (animation == SharedTransitionPageAnimation.Scale)
+			pages.Backdrop = scene.AddShape(pages.Outgoing!.Frame, new ShapeStyle(default, GetBackdropColor(to), null, 0));
+
+		// The page that moves on top is the new one when pushing and the old one when popping.
+		var (lower, upper) = isPop ? (pages.Incoming, pages.Outgoing) : (pages.Outgoing, pages.Incoming);
+		pages.Backdrop?.BringToFront();
+		lower?.BringToFront();
+		upper?.BringToFront();
+
+		foreach (var flight in flights)
+		{
+			flight.Shape?.BringToFront();
+			flight.SourceContent?.BringToFront();
+			flight.Source?.BringToFront();
+		}
+
+		foreach (var flight in flights)
+		{
+			flight.Target?.BringToFront();
+			flight.TargetContent?.BringToFront();
+		}
+	}
+
+	static Color GetBackdropColor(Page page)
+	{
+		if (((IView)page).Background is SolidPaint { Color: Color color } && color.Alpha > 0)
+			return color;
+
+		return Application.Current?.RequestedTheme == AppTheme.Dark ? Colors.Black : Colors.White;
+	}
+
+	static void StepPages(PageLayers pages, bool isPop, SharedTransitionPageAnimation animation, double t)
+	{
+		pages.Window?.Apply(pages.Window.Frame, 1 - t);
+
+		if (pages.Outgoing is not SnapshotLayer outgoing)
+			return;
+
+		var incoming = pages.Incoming;
+		if (animation == SharedTransitionPageAnimation.Slide)
+		{
+			// Push: the new page covers the old one, which moves a bit to the leading edge. Pop: the reverse.
+			if (isPop)
+			{
+				outgoing.Apply(outgoing.Frame.Offset(outgoing.Frame.Width * t, 0), 1);
+				incoming?.Apply(incoming.Frame.Offset(-incoming.Frame.Width * SlideParallax * (1 - t), 0), 1);
+			}
+			else
+			{
+				outgoing.Apply(outgoing.Frame.Offset(-outgoing.Frame.Width * SlideParallax * t, 0), 1);
+				incoming?.Apply(incoming.Frame.Offset(incoming.Frame.Width * (1 - t), 0), 1);
+			}
+
+			return;
+		}
+
+		// Scale: pushing zooms forward (the old page grows and fades, the new one grows into place);
+		// popping zooms backward.
+		var direction = isPop ? -1 : 1;
+		outgoing.Apply(ScaleAroundCenter(outgoing.Frame, 1 + direction * ScaleAmount * t), 1 - t);
+		incoming?.Apply(ScaleAroundCenter(incoming.Frame, 1 - direction * ScaleAmount * (1 - t)), t);
+	}
+
+	static void Step(Flight flight, SharedTransitionPath path, double t)
 	{
 		if (flight.TargetFrame is not Rect targetFrame)
 		{
@@ -127,7 +219,7 @@ internal static class SharedTransitionRunner
 			return;
 		}
 
-		var frame = Lerp(flight.Frame, targetFrame, t);
+		var frame = Interpolate(flight.Frame, targetFrame, path, t);
 		flight.Source?.Apply(frame, 1);
 		flight.Target?.Apply(frame, t);
 
@@ -139,7 +231,7 @@ internal static class SharedTransitionRunner
 		// Contents morph between each other when both exist; otherwise they keep their place inside the shape.
 		if (flight.SourceContent is not null && flight.TargetContent is not null)
 		{
-			var contentFrame = Lerp(flight.SourceContent.Frame, flight.TargetContent.Frame, t);
+			var contentFrame = Interpolate(flight.SourceContent.Frame, flight.TargetContent.Frame, path, t);
 			flight.SourceContent.Apply(contentFrame, 1 - t);
 			flight.TargetContent.Apply(contentFrame, t);
 		}
@@ -200,6 +292,29 @@ internal static class SharedTransitionRunner
 		from.Y + (to.Y - from.Y) * t,
 		from.Width + (to.Width - from.Width) * t,
 		from.Height + (to.Height - from.Height) * t);
+
+	static Rect Interpolate(Rect from, Rect to, SharedTransitionPath path, double t)
+	{
+		var frame = Lerp(from, to, t);
+		if (path != SharedTransitionPath.Arc)
+			return frame;
+
+		// Quadratic Bézier between both centers with the control point at (end X, start Y):
+		// the element leaves horizontally and arrives vertically. Size still changes linearly.
+		var start = from.Center;
+		var end = to.Center;
+		var u = 1 - t;
+		var x = u * u * start.X + 2 * u * t * end.X + t * t * end.X;
+		var y = u * u * start.Y + 2 * u * t * start.Y + t * t * end.Y;
+		return new Rect(x - frame.Width / 2, y - frame.Height / 2, frame.Width, frame.Height);
+	}
+
+	static Rect ScaleAroundCenter(Rect rect, double scale)
+	{
+		var width = rect.Width * scale;
+		var height = rect.Height * scale;
+		return new Rect(rect.Center.X - width / 2, rect.Center.Y - height / 2, width, height);
+	}
 
 	// Moves a rectangle that lives inside `from` to the same relative place inside `to`.
 	static Rect Map(Rect rect, Rect from, Rect to)
