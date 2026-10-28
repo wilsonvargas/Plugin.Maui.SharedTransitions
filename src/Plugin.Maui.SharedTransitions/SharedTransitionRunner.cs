@@ -25,6 +25,9 @@ internal static class SharedTransitionRunner
 		public ShapeStyle SourceStyle { get; init; }
 		public SnapshotLayer? SourceContent { get; set; }
 
+		// Text keeps its aspect ratio while flying, anchored like the label aligns it.
+		public TextAlignment? TextAlignment { get; init; }
+
 		public Rect? TargetFrame { get; set; }
 		public SnapshotLayer? Target { get; set; }
 		public ShapeStyle? TargetStyle { get; set; }
@@ -140,7 +143,9 @@ internal static class SharedTransitionRunner
 			};
 		}
 
-		return scene.Capture(element) is SnapshotLayer layer ? new Flight(name, layer.Frame) { Source = layer } : null;
+		return scene.Capture(element) is SnapshotLayer layer
+			? new Flight(name, layer.Frame) { Source = layer, TextAlignment = (element as Label)?.HorizontalTextAlignment }
+			: null;
 	}
 
 	// Captures the destination page (shared elements already hidden) and stacks both pages below the flights.
@@ -224,8 +229,17 @@ internal static class SharedTransitionRunner
 		}
 
 		var frame = Interpolate(flight.Frame, targetFrame, path, t);
-		flight.Source?.Apply(frame, 1);
-		flight.Target?.Apply(frame, t);
+		if (flight.Target is null)
+		{
+			flight.Source?.Apply(frame, 1);
+		}
+		else
+		{
+			// The new snapshot fades in during the first half and the old one fades out during the second,
+			// so there is always one fully opaque and no trace of the old one is left at the end.
+			flight.Source?.Apply(flight.TextAlignment is TextAlignment sourceAlignment ? FitText(flight.Frame, frame, sourceAlignment) : frame, Math.Min(1, 2 * (1 - t)));
+			flight.Target.Apply(flight.TextAlignment is TextAlignment targetAlignment ? FitText(targetFrame, frame, targetAlignment) : frame, Math.Min(1, 2 * t));
+		}
 
 		if (flight.TargetStyle is ShapeStyle targetStyle)
 			flight.Shape?.Apply(frame, ShapeStyle.Lerp(flight.SourceStyle, targetStyle, t), 1);
@@ -311,6 +325,23 @@ internal static class SharedTransitionRunner
 		var x = u * u * start.X + 2 * u * t * end.X + t * t * end.X;
 		var y = u * u * start.Y + 2 * u * t * start.Y + t * t * end.Y;
 		return new Rect(x - frame.Width / 2, y - frame.Height / 2, frame.Width, frame.Height);
+	}
+
+	// Labels usually have different widths on each page (a list cell vs. the full page), so stretching both
+	// snapshots to the same frame deforms the text differently and the two copies never line up. Instead,
+	// each snapshot keeps its aspect ratio, scaled by the height (which follows the font size), and is anchored
+	// at the start, center or end of the interpolated frame like its text.
+	static Rect FitText(Rect original, Rect frame, TextAlignment alignment)
+	{
+		var width = original.Width * frame.Height / original.Height;
+		var x = alignment switch
+		{
+			TextAlignment.Center => frame.Center.X - width / 2,
+			TextAlignment.End => frame.Right - width,
+			_ => frame.X,
+		};
+
+		return new Rect(x, frame.Y, width, frame.Height);
 	}
 
 	static Rect ScaleAroundCenter(Rect rect, double scale)

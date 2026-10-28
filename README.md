@@ -85,6 +85,8 @@ With `Slide` and `Scale` the navigation bar of the new page appears right away; 
 
 A `Border` with a solid background and a rectangle/rounded rectangle shape is drawn natively instead,
 so its corner radius, background, stroke color and thickness morph smoothly; its content flies as a snapshot on top.
+A `Label` keeps the aspect ratio of its text while flying (scaled by its height and anchored like its
+`HorizontalTextAlignment`), so the text doesn't get stretched when the label has a different width on each page.
 Views without a match on the other page just fade out.
 
 ## Limitations (v0.1)
