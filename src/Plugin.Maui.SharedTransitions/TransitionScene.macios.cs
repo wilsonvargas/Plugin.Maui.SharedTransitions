@@ -51,13 +51,7 @@ internal sealed partial class TransitionScene
 
 	public partial ShapeLayer AddShape(Rect frame, ShapeStyle style)
 	{
-		// Full-size view, so the shape can be redrawn at any frame without relayout.
-		var view = new UIView(_container.Bounds)
-		{
-			BackgroundColor = UIColor.Clear,
-			UserInteractionEnabled = false,
-			AutoresizingMask = UIViewAutoresizing.FlexibleDimensions,
-		};
+		var view = new UIView { UserInteractionEnabled = false };
 		var shape = new CAShapeLayer();
 		view.Layer.AddSublayer(shape);
 		_container.AddSubview(view);
@@ -149,12 +143,57 @@ internal sealed partial class ShapeLayer
 
 	public partial void Apply(Rect frame, ShapeStyle style, double opacity)
 	{
+		var radius = style.CornerRadius;
+		var uniform = radius.TopLeft == radius.TopRight && radius.TopLeft == radius.BottomLeft && radius.TopLeft == radius.BottomRight;
+
+		// Without this, Core Animation would animate every change implicitly and lag behind the transition.
+		CATransaction.Begin();
+		CATransaction.DisableActions = true;
+
+		_view.Frame = new CGRect(frame.X, frame.Y, frame.Width, frame.Height);
+		_view.Alpha = (nfloat)opacity;
+
+		if (uniform)
+		{
+			// Plain layer properties are composited by the GPU. A CAShapeLayer path is rasterized on the CPU
+			// every time it changes, which made full-page backgrounds stutter.
+			var layer = _view.Layer;
+			layer.BackgroundColor = style.Fill.ToCGColor();
+			layer.CornerRadius = (nfloat)Math.Clamp(radius.TopLeft, 0, Math.Min(frame.Width, frame.Height) / 2);
+			layer.BorderColor = (style.Stroke ?? Colors.Transparent).ToCGColor();
+			layer.BorderWidth = (nfloat)style.StrokeThickness;
+			SetPath(null);
+		}
+		else
+		{
+			_view.Layer.BackgroundColor = null;
+			_view.Layer.CornerRadius = 0;
+			_view.Layer.BorderWidth = 0;
+			SetPath(CreatePath(frame.Width, frame.Height, style));
+			_shape.FillColor = style.Fill.ToCGColor();
+			_shape.StrokeColor = (style.Stroke ?? Colors.Transparent).ToCGColor();
+			_shape.LineWidth = (nfloat)style.StrokeThickness;
+		}
+
+		CATransaction.Commit();
+	}
+
+	void SetPath(CGPath? path)
+	{
+		var previous = _shape.Path;
+		_shape.Path = path;
+		previous?.Dispose();
+	}
+
+	// Rounded rectangle with a different radius per corner, in the view's own coordinates.
+	static CGPath CreatePath(double width, double height, ShapeStyle style)
+	{
 		// The stroke is centered on the outline, so it's inset by half its thickness to stay inside the frame.
 		var inset = style.StrokeThickness / 2;
-		var left = frame.X + inset;
-		var top = frame.Y + inset;
-		var right = frame.Right - inset;
-		var bottom = frame.Bottom - inset;
+		var left = inset;
+		var top = inset;
+		var right = width - inset;
+		var bottom = height - inset;
 		var maxRadius = Math.Max(0, Math.Min(right - left, bottom - top) / 2);
 
 		nfloat Radius(double radius) => (nfloat)Math.Clamp(radius - inset, 0, maxRadius);
@@ -174,19 +213,7 @@ internal sealed partial class ShapeLayer
 		path.AddLineToPoint((nfloat)left, (nfloat)top + topLeft);
 		path.AddArcToPoint((nfloat)left, (nfloat)top, (nfloat)left + topLeft, (nfloat)top, topLeft);
 		path.CloseSubpath();
-
-		// Without this, Core Animation would animate every change implicitly and lag behind the transition.
-		CATransaction.Begin();
-		CATransaction.DisableActions = true;
-		var previous = _shape.Path;
-		_shape.Path = path;
-		_shape.FillColor = style.Fill.ToCGColor();
-		_shape.StrokeColor = (style.Stroke ?? Colors.Transparent).ToCGColor();
-		_shape.LineWidth = (nfloat)style.StrokeThickness;
-		CATransaction.Commit();
-		previous?.Dispose();
-
-		_view.Alpha = (nfloat)opacity;
+		return path;
 	}
 
 	public partial void BringToFront() => _view.Superview?.BringSubviewToFront(_view);
