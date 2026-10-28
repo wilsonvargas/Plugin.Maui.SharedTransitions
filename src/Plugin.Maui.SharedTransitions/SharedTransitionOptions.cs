@@ -50,12 +50,6 @@ public enum SharedTransitionPageAnimation
 
 	/// <summary>The pages zoom and crossfade: forward when pushing, backward when popping.</summary>
 	Scale,
-
-	/// <summary>
-	/// The rest of the page changes right away and only the shared elements are animated.
-	/// To navigate without any animation, use the regular MAUI navigation with <c>animated: false</c>.
-	/// </summary>
-	SharedElementsOnly,
 }
 
 /// <summary>

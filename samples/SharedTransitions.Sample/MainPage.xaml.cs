@@ -20,7 +20,6 @@ public partial class MainPage : ContentPage
 		("Desvanecer", SharedTransitionPageAnimation.Fade),
 		("Deslizar", SharedTransitionPageAnimation.Slide),
 		("Zoom", SharedTransitionPageAnimation.Scale),
-		("Sin animación", SharedTransitionPageAnimation.SharedElementsOnly),
 	];
 
 	static readonly (string Label, SharedTransitionPath Value)[] Paths =

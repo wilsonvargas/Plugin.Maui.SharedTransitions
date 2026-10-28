@@ -74,12 +74,9 @@ internal static class SharedTransitionRunner
 
 			// Captured after hiding the elements, so they don't stay behind as a ghost.
 			scene.HideScrollBars(from);
-			var pages = options.PageAnimation switch
-			{
-				SharedTransitionPageAnimation.Fade => new PageLayers { Window = scene.CaptureWindow() },
-				SharedTransitionPageAnimation.Slide or SharedTransitionPageAnimation.Scale => new PageLayers { Outgoing = scene.Capture(from) },
-				_ => new PageLayers(),
-			};
+			var pages = options.PageAnimation is SharedTransitionPageAnimation.Slide or SharedTransitionPageAnimation.Scale
+				? new PageLayers { Outgoing = scene.Capture(from) }
+				: new PageLayers { Window = scene.CaptureWindow() };
 
 			await navigate(false);
 			scene.HideScrollBars(to);
