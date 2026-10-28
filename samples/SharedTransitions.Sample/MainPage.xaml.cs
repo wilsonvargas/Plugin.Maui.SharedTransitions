@@ -7,7 +7,7 @@ public partial class MainPage : ContentPage
 	public MainPage()
 	{
 		InitializeComponent();
-		DestinationsView.ItemsSource = Destination.All;
+		FruitsView.ItemsSource = Fruit.All;
 
 		PageAnimationPicker.ItemsSource = PageAnimations.Select(o => o.Label).ToList();
 		PageAnimationPicker.SelectedIndex = Array.FindIndex(PageAnimations, o => o.Value == SharedTransitionOptions.Default.PageAnimation);
@@ -17,15 +17,15 @@ public partial class MainPage : ContentPage
 
 	static readonly (string Label, SharedTransitionPageAnimation Value)[] PageAnimations =
 	[
-		("Desvanecer", SharedTransitionPageAnimation.Fade),
-		("Deslizar", SharedTransitionPageAnimation.Slide),
-		("Zoom", SharedTransitionPageAnimation.Scale),
+		("Fade", SharedTransitionPageAnimation.Fade),
+		("Slide", SharedTransitionPageAnimation.Slide),
+		("Scale", SharedTransitionPageAnimation.Scale),
 	];
 
 	static readonly (string Label, SharedTransitionPath Value)[] Paths =
 	[
-		("Línea recta", SharedTransitionPath.Linear),
-		("En arco", SharedTransitionPath.Arc),
+		("Linear", SharedTransitionPath.Linear),
+		("Arc", SharedTransitionPath.Arc),
 	];
 
 	// Options used by both pages: each navigation call can override the defaults set in MauiProgram.
@@ -43,12 +43,12 @@ public partial class MainPage : ContentPage
 		});
 	}
 
-	async void OnDestinationTapped(object? sender, TappedEventArgs e)
+	async void OnFruitTapped(object? sender, TappedEventArgs e)
 	{
-		if ((sender as BindableObject)?.BindingContext is not Destination destination)
+		if ((sender as BindableObject)?.BindingContext is not Fruit fruit)
 			return;
 
 		// The group selects which card of the list takes part in the transition.
-		await this.PushWithSharedTransitionAsync(new DetailPage(destination), group: destination.Id, TransitionOptions);
+		await this.PushWithSharedTransitionAsync(new DetailPage(fruit), group: fruit.Id, TransitionOptions);
 	}
 }
