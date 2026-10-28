@@ -69,7 +69,7 @@ await this.PopWithSharedTransitionAsync(options);
 
 | Option | Values | Default |
 |---|---|---|
-| `PageAnimation` | `Fade`: the previous page fades out over the new one<br>`Slide`: the new page slides in from the trailing edge (and back out on pop)<br>`Scale`: the pages zoom and crossfade, forward on push and backward on pop<br>`None`: only the shared elements are animated | `Fade` |
+| `PageAnimation` | `Fade`: the previous page fades out over the new one<br>`Slide`: the new page slides in from the trailing edge (and back out on pop)<br>`Scale`: the pages zoom and crossfade, forward on push and backward on pop<br>`SharedElementsOnly`: the rest of the page changes right away and only the shared elements are animated | `Fade` |
 | `Path` | `Linear`: straight line<br>`Arc`: curved path that leaves horizontally, more natural for diagonal movements | `Linear` |
 | `Duration` | Milliseconds | `250` |
 | `Easing` | Any MAUI `Easing` | `Easing.CubicOut` |

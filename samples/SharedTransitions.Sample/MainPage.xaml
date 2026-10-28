@@ -9,9 +9,11 @@
     Title="Destinos del Perú">
 
     <Grid RowDefinitions="Auto,*">
-        <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="16,8,16,0">
-            <Picker x:Name="PageAnimationPicker" Title="Animación de página" SelectedIndexChanged="OnOptionsChanged" />
-            <Picker x:Name="PathPicker" Grid.Column="1" Title="Trayectoria" SelectedIndexChanged="OnOptionsChanged" />
+        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" Margin="16,8,16,0">
+            <Label Text="Resto de la página" FontSize="12" TextColor="Gray" />
+            <Label Grid.Column="1" Text="Elementos compartidos" FontSize="12" TextColor="Gray" />
+            <Picker x:Name="PageAnimationPicker" Grid.Row="1" Title="Resto de la página" SelectedIndexChanged="OnOptionsChanged" />
+            <Picker x:Name="PathPicker" Grid.Row="1" Grid.Column="1" Title="Elementos compartidos" SelectedIndexChanged="OnOptionsChanged" />
         </Grid>
 
         <CollectionView x:Name="DestinationsView" Grid.Row="1" SelectionMode="None" Margin="16,8">
