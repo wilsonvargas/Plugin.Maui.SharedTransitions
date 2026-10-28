@@ -1,8 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net10.0;net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
+		<TargetFrameworks>net10.0;net10.0-android;net10.0-ios;net10.0-maccatalyst;net9.0;net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0;net9.0-windows10.0.19041.0</TargetFrameworks>
+
+		<!-- .NET 9 targets build against MAUI 9 (its last release), .NET 10 targets against the MAUI of the SDK. -->
+		<MauiVersion Condition="$(TargetFramework.StartsWith('net9.0'))">9.0.120</MauiVersion>
+		<!-- MAUI 9 is out of support (May 2026) but still targeted on purpose, for apps that haven't moved to .NET 10 yet. -->
+		<CheckEolWorkloads Condition="$(TargetFramework.StartsWith('net9.0'))">false</CheckEolWorkloads>
 
 		<UseMaui>true</UseMaui>
 		<SingleProject>true</SingleProject>
