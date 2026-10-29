@@ -50,9 +50,16 @@ jobs:
         with:
           user: ${{ secrets.NUGET_USER }}
 
-      # The .snupkg next to the .nupkg is pushed automatically.
+      # The shell expands the file list (dotnet nuget push didn't expand the wildcard on the Windows runner).
+      # The .snupkg next to each .nupkg is pushed automatically.
       - name: Push to nuget.org
-        run: dotnet nuget push "artifacts/*.nupkg" --api-key ${{ steps.nuget.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        shell: bash
+        env:
+          NUGET_API_KEY: ${{ steps.nuget.outputs.NUGET_API_KEY }}
+        run: |
+          for package in artifacts/*.nupkg; do
+            dotnet nuget push "$package" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          done
 
       - name: GitHub release
         shell: bash
