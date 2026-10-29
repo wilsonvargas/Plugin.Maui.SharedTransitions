@@ -4,6 +4,11 @@
 
 # Plugin.Maui.SharedTransitions
 
+[![NuGet](https://img.shields.io/nuget/v/Plugin.Maui.SharedTransitions.svg)](https://www.nuget.org/packages/Plugin.Maui.SharedTransitions)
+[![Downloads](https://img.shields.io/nuget/dt/Plugin.Maui.SharedTransitions.svg)](https://www.nuget.org/packages/Plugin.Maui.SharedTransitions)
+[![CI](https://github.com/wilsonvargas/Plugin.Maui.SharedTransitions/actions/workflows/ci.yml/badge.svg)](https://github.com/wilsonvargas/Plugin.Maui.SharedTransitions/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/wilsonvargas/Plugin.Maui.SharedTransitions/blob/main/LICENSE)
+
 Shared element ("hero") transitions between pages for .NET MAUI, inspired by
 [Xamarin.Plugin.SharedTransitions](https://github.com/Evolutionlab/Xamarin.Plugin.SharedTransitions),
 which was never ported to MAUI.
