@@ -341,19 +341,37 @@ internal static class SharedTransitionRunner
 		element.Opacity = 0;
 	}
 
-	// Waits until every shared element of the page has a native frame that doesn't change between two frames.
+	// Waits until the page and every shared element of it have a native frame that doesn't change between two frames.
+	// When some elements never get a frame (no match on this page, hidden, zero size), it stops once the page has been
+	// stable for a few frames, instead of blocking the screen until the timeout.
 	static async Task WaitForLayoutAsync(TransitionScene scene, Page page, object? group, TimeSpan timeout)
 	{
+		const int SettledPolls = 3;
+
 		var stopwatch = Stopwatch.StartNew();
 		List<Rect?>? previous = null;
+		var stablePolls = 0;
 
 		while (stopwatch.Elapsed < timeout)
 		{
 			await Task.Delay(16);
 
-			var frames = SharedElementFinder.Find(page, group).Select(e => scene.GetFrame(e.Element)).ToList();
-			if (frames.Count > 0 && frames.All(f => f is not null) && previous is not null && frames.SequenceEqual(previous))
-				return;
+			var elements = SharedElementFinder.Find(page, group).Select(e => scene.GetFrame(e.Element)).ToList();
+			var pageFrame = scene.GetFrame(page);
+			var frames = elements.Prepend(pageFrame).ToList();
+
+			if (pageFrame is not null && previous is not null && frames.SequenceEqual(previous))
+			{
+				if (elements.Count > 0 && elements.All(f => f is not null))
+					return;
+
+				if (++stablePolls >= SettledPolls)
+					return;
+			}
+			else
+			{
+				stablePolls = 0;
+			}
 
 			previous = frames;
 		}

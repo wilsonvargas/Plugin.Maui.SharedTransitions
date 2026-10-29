@@ -28,6 +28,12 @@ snapshots in a native overlay to the matching views of the new page.
 .NET 9 or .NET 10 with .NET MAUI. The package targets both, each one built against its own MAUI version
 (MAUI 9 is out of support since May 2026; .NET 10 is recommended).
 
+## Installation
+
+```bash
+dotnet add package Plugin.Maui.SharedTransitions
+```
+
 ## Setup
 
 ```csharp
@@ -140,7 +146,7 @@ SIMCTL_CHILD_SHARED_TRANSITIONS_DEMO=1 xcrun simctl launch --console-pty booted 
 ```
 
 Platform code is selected by file suffix (see the `.csproj`): `*.android.cs`, `*.macios.cs`
-(iOS + Mac Catalyst) and `*.fallback.cs` (Windows and plain `net10.0`).
+(iOS + Mac Catalyst) and `*.fallback.cs` (Windows and plain `net9.0`/`net10.0`).
 
 ## License
 
